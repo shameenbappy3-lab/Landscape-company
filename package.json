@@ -1,0 +1,24 @@
+{
+  "name": "landscape",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shameenbappy3-lab/Landscape-company.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shameenbappy3-lab/Landscape-company/issues"
+  },
+  "homepage": "https://github.com/shameenbappy3-lab/Landscape-company#readme",
+  "dependencies": {
+    "resend": "^6.9.4"
+  },
+  "devDependencies": {},
+  "description": ""
+}
