@@ -61,6 +61,7 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 // ── Contact form ───────────────────────────────────────────────
+// ── Contact form ───────────────────────────────────────────────
 const form       = document.querySelector("#contact-form");
 const formStatus = document.querySelector(".form-status");
 
@@ -70,59 +71,57 @@ if (form && formStatus) {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    // UI Feedback
     formStatus.className = "form-status";
-    formStatus.textContent = "Sending your request…";
+    formStatus.textContent = "Sending your request...";
 
-    const data      = Object.fromEntries(new FormData(form).entries());
-    const endpoint  = (form.dataset.endpoint || form.getAttribute("action") || "").trim();
+    const formData  = new FormData(form);
+    const data      = Object.fromEntries(formData.entries());
+    
+    // Security Checks
     const tooFast   = data._formStart && Date.now() - Number(data._formStart) < 3000;
     const hasHoney  = typeof data._honey === "string" && data._honey.trim().length > 0;
 
+    if (tooFast || hasHoney) {
+      formStatus.classList.add("error");
+      formStatus.textContent = "Please wait a moment and try again.";
+      return;
+    }
+
     try {
-      if (tooFast || hasHoney) {
-        formStatus.classList.add("error");
-        formStatus.textContent = "Please wait a moment and try again.";
-        return;
+      // Professional API Call to your Vercel Function
+      const res = await fetch('/api/send', {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Accept": "application/json" 
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error("Network error");
+
+      // Analytics Trigger
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "form_submit", { method: "resend_api", form_name: "estimate_form" });
       }
 
-      if (endpoint.includes("formsubmit.co/")) {
-        if (typeof window.gtag === "function") {
-          window.gtag("event", "form_submit", { method: "formsubmit", form_name: "estimate_form" });
-        }
-        setTimeout(() => form.submit(), 120);
-        return;
-      }
+      // Success: Instant redirect to your custom thank-you page
+      window.location.href = "thank-you.html";
 
-      if (endpoint) {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error("Network error");
-        form.reset();
-        formStatus.classList.add("success");
-        formStatus.textContent = "✓ Request sent! We'll get back to you within a few hours.";
-        if (typeof window.gtag === "function") {
-          window.gtag("event", "form_submit", { method: "ajax", form_name: "estimate_form" });
-        }
-        return;
-      }
-
-      // Fallback: mailto
-      const subject = encodeURIComponent("New GreenCraft Estimate Request");
-      const body    = encodeURIComponent(
-        `Name: ${data.name}\nPhone: ${data.phone}\nEmail: ${data.email}\nService: ${data.service}\nProperty: ${data.property}\n\nDetails:\n${data.message}`
-      );
-      window.location.href = `mailto:your@email.com?subject=${subject}&body=${body}`;
-      formStatus.classList.add("success");
-      formStatus.textContent = "Mail app opened — send the message from there.";
-    } catch {
+    } catch (error) {
+      // Fallback: This only triggers if the API fails
+      console.error("Submission error:", error);
       formStatus.classList.add("error");
       formStatus.textContent = "Submission failed. Please call or WhatsApp us directly.";
     }
   });
 }
+// ── Footer year ────────────────────────────────────────────────
+const yearEl = document.querySelector("#year");
+if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
 
 // ── Analytics — call & WhatsApp click tracking ─────────────────
 document.querySelectorAll('a[href^="tel:"]').forEach((link) => {
@@ -140,7 +139,3 @@ document.querySelectorAll('a[href*="wa.me"]').forEach((link) => {
     }
   });
 });
-
-// ── Footer year ────────────────────────────────────────────────
-const yearEl = document.querySelector("#year");
-if (yearEl) yearEl.textContent = String(new Date().getFullYear());
