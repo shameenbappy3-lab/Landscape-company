@@ -1,6 +1,12 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -8,10 +14,10 @@ export default async function handler(req, res) {
   const { name, phone, email, service, property, message } = req.body;
 
   try {
-    const data = await resend.emails.send({
-      from: 'ProClean Lead <onboarding@resend.dev>', 
-      to: ['procleanlawncarellc@gmail.com'], // The client's email
-      subject: `New Estimate Request: ${name}`,
+    await transporter.sendMail({
+      from: `"GreenCraft Lead System" <${process.env.GMAIL_USER}>`,
+      to: process.env.CLIENT_EMAIL,
+      subject: `New Estimate Request from ${name}`,
       html: `
         <h2>New Lead Details</h2>
         <p><strong>Name:</strong> ${name}</p>
