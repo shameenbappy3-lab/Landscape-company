@@ -17,8 +17,7 @@
   },
   "homepage": "https://github.com/shameenbappy3-lab/Landscape-company#readme",
   "dependencies": {
-    "resend": "^6.9.4"
+    "nodemailer": "^8.0.4"
   },
-  "devDependencies": {},
   "description": ""
 }
